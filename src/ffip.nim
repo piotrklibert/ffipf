@@ -41,14 +41,17 @@ proc mk_num(env: ptr emacs_env, n: int): emacs_value =
 emacs.defun(init, 1):
   let root = get_string(env, args[0])
   reset_paths()
+  # TODO: remove hardcoded ignored_part
   let paths_count = init_paths("/home/cji/", root)
   return env.mk_num(paths_count)
 
 
 emacs.defun(search, 1):
   let pat = get_string(env, args[0])
-  var re = search(pat).mapIt(env.mk_string(it.res))
-  return env.mk_call("list", re)
+  let res = search(pat)
+  # TODO: absolutize the returned paths before they get here
+  var emacs_res = res.mapIt(env.mk_string(search_root & it.res))
+  return env.mk_call("list", emacs_res)
 
 
 provide(emacs)

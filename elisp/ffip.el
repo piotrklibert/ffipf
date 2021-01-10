@@ -4,7 +4,8 @@
 
 (defun ffip-test (&optional dir pat)
   (setq dir (or dir "/home/cji/.emacs.d/"))
-  (setq pat (or pat "co/path"))
+  ;; (setq dir (or dir "/home/cji/priv/ffip/"))
+  (setq pat (or pat ".c"))
   (load "ffip.so")
   (cl-assert (and (functionp 'ffip-init)
                   (functionp 'ffip-search)))
@@ -18,9 +19,9 @@
 (defvar ffip-initialized nil)
 
 
-(defun ffip-search-1 (pat &rest args)
+(defun ffip-search-1 (pat &rest _args)
   (when pat
-    (tst-search pat)))
+    (ffip-search pat)))
 
 
 (defun ffip-init-1 (root)
@@ -30,13 +31,14 @@
 
 
 (defun ffip ()
+  (interactive)
   (require 'ivy)
   (require 'project)
   (let ((pr (project-root (project-current t))))
     (when (or (not ffip-initialized)
               (not (string= pr ffip-initialized)))
       (ffip-init-1 pr)))
-  (ivy-read "> " 'ffip-search-1 :dynamic-collection t))
+  (find-file (ivy-read "> " 'ffip-search-1 :dynamic-collection t)))
 
 
 (provide 'ffip)

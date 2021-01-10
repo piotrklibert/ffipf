@@ -32,7 +32,7 @@ template defun*(self: EmacsModule; fsym: untyped; max_args: int; body: untyped) 
       body
 
 
-proc provideString* (self: EmacsModule): string =
+proc provideString*(self: EmacsModule): string =
   format("""
 /* Provide FEATURE to Emacs.  */
 static void

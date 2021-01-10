@@ -13,12 +13,12 @@ let dirsBlacklist = [
   "backups", "build", ".git", ".github", ".bzr", ".mypy_cache", ".venv", "elpy",
   "eln-cache", "auto-saves", "auto-save-list", "node_modules", "undo-history",
   "var", "url", "flycheck-pycheckers", "semanticdb", ".python-environments",
-  ".cache", ".cask", "test", "terraform-mode",
+  ".cache", ".cask", "test", "terraform-mode", "nimcache"
 ].toCritBitTree
 
 let extBlacklist = [".elc", ".texi", ".pyc"].toCritBitTree
 
-
+var search_root*: string
 var paths: seq[string] = newSeqOfCap[string](20200)
 
 
@@ -27,6 +27,7 @@ var paths: seq[string] = newSeqOfCap[string](20200)
 # files with `extBlacklist` extensions.
 # TODO: make blacklists configurable when called.
 proc init_paths*(ignored_part, dir: string): int =
+  search_root = ignored_part
   for (kind, path) in walkDir(dir):
     if kind == pcFile:
       let (_, _, ext) = splitFile(path)
@@ -181,14 +182,16 @@ proc search_paths(pattern: string): seq[MatchResult] =
 # Perform a search for files matching `pattern`. Returns at most
 # `MAX_RESULTS - 1` results, but can return less results or none at all.
 proc search*(pattern: string): seq[MatchResult] =
-  let
-    results = search_paths(pattern).sortedByIt(-it.score)
-    hi = if high(results) > MAX_RESULTS: MAX_RESULTS else: high(results)
-  results[0..<hi]
+  result = @[]
+  let matches = search_paths(pattern).sortedByIt(-it.score)
+  if len(matches) > 0:
+    let hi = if high(matches) > MAX_RESULTS: MAX_RESULTS else: high(matches)
+    result = matches[0..<hi]
 
 
 # Simple REPL for testing.
 when isMainModule:
+  # TODO: take these from the command line
   discard init_paths("/home/cji/", "/home/cji/.emacs.d/")
   var line = ""
   while true:
