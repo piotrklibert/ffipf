@@ -2,7 +2,7 @@
 
 **WARNING**: This is an alpha (at best) release and so it's very rough around
 the edges. The name will also most likely change. There are hardcoded values
-specific to my setup.
+specific to my setup all over the place. Currently only working on Linux.
 
 ### What is it?
 
