@@ -7,6 +7,12 @@ import algorithm
 import tables
 import re
 
+
+template debugEcho(args: varargs[string, `$`]) =
+  when defined(debugLogging):
+    echo args.join(" ")
+
+
 const MAX_RESULTS = 20
 
 let dirsBlacklist = [
@@ -189,6 +195,7 @@ proc search*(pattern: string): seq[MatchResult] =
   let matches = search_paths(pattern).sortedByIt(-it.score)
   if len(matches) > 0:
     let hi = if high(matches) > MAX_RESULTS: MAX_RESULTS else: high(matches)
+    debugEcho matches
     result = matches[0..hi]
 
 

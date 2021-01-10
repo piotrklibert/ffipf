@@ -9,6 +9,7 @@ ffip.so: src/ffip.nim src/fuzzy_file_finder.nim src/emacs_module.nim Makefile
 	  --gc:arc \
 	  src/ffip.nim
 
+#	  -d:debugLogging \
 #	  --debugInfo:on \
 #	  --lineTrace:on \
 #	  --debugger:native \

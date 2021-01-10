@@ -89,5 +89,5 @@ template init*(sym: untyped) {. dirty .} =
   static:
     let info = instantiationInfo()
     sym.functions = ""
-    # If the file name is foo.nim, let the libary name to _foo.
+    # If the file name is foo.nim, set the libary name to foo.
     sym.libName = splitFile(info.filename).name
