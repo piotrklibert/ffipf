@@ -53,6 +53,7 @@ type
   MatchCache = Table[string, MatchResult]
   Matcher = object of RootObj
     re: Regex
+    re_raw: string
     parts: seq[string]
     ngroups: int
     empty: bool
@@ -81,12 +82,14 @@ proc make_regexes(pattern: string): (Matcher, Matcher) =
   let
     path_matcher = Matcher(
       re: path_regex_raw.re,
+      re_raw: path_regex_raw,
       empty: len(path_parts) == 0,
       parts: path_parts,
       ngroups: path_regex_raw.toSeq().countIt(it == '(')
     )
     file_matcher = Matcher(
       re: file_regex_raw.re,
+      re_raw: file_regex_raw,
       parts: @[file_name_part],
       ngroups: file_regex_raw.toSeq().countIt(it == '(')
     )
@@ -186,13 +189,13 @@ proc search*(pattern: string): seq[MatchResult] =
   let matches = search_paths(pattern).sortedByIt(-it.score)
   if len(matches) > 0:
     let hi = if high(matches) > MAX_RESULTS: MAX_RESULTS else: high(matches)
-    result = matches[0..<hi]
+    result = matches[0..hi]
 
 
 # Simple REPL for testing.
 when isMainModule:
   # TODO: take these from the command line
-  discard init_paths("/home/cji/", "/home/cji/.emacs.d/")
+  discard init_paths("/home/cji/projects/", "/home/cji/projects/url-shortener-service/")
   var line = ""
   while true:
     stdout.write("> ")
