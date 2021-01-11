@@ -34,7 +34,20 @@ something like this:
       (ffipf))
 ```
 
-then `M-x ffipf` when visiting a buffer placed in a project (basically, anywhere
-the `project.el` can find out the root of). You should get something like this:
+then `M-x my-jump-file` when visiting a buffer placed in a project (basically,
+anywhere the `project.el` can find out the root of).
+
+You should get something like this:
 
 ![screenshot](https://raw.githubusercontent.com/piotrklibert/ffipf/master/img/screenshot.png)
+
+
+### It doesn't work!
+
+Well, that's expected, really. This is currently a Proof of Concept stage - it
+works for me, I've started using it instead of `counsel-jump-file` from Ivy, but
+that doesn't mean it will just work for anyone else! I plan to polish the
+package in the upcoming weeks.
+
+That being said, please open an issue if you decide to give it a try anyway! It
+will help with my motivation to keep developing this :)

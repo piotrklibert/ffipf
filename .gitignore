@@ -1,5 +1,5 @@
-/ffip
-/ffip.so
+/ffipf
+/ffip*.so
 /nimcache/
 /ffipf_backend.so
 /dist/
