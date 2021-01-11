@@ -46,3 +46,10 @@ test "search works":
   let fnames4 = search("READ").mapIt(it.res)
   check len(fnames4) >= 1
   check fnames4[0].lastPathPart == "README.md"
+
+
+template tmpl1(arg: int): int = 3
+
+test "kwargs in template work":
+  check tmpl1(24) == 3
+  check tmpl1(arg=24) == 3
