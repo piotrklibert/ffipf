@@ -3,9 +3,8 @@
 
 
 (defun ffipf-test (&optional dir pat)
-  (setq dir (or dir "/home/cji/.emacs.d/"))
-  ;; (setq dir (or dir "/home/cji/priv/ffip/"))
-  (setq pat (or pat ".c"))
+  (setq dir (or dir (expand-file-name user-emacs-directory)))
+  (setq pat (or pat ".el"))
   (load "ffipf_backend.so")
   (cl-assert (and (functionp 'ffipf-backend-init)
                   (functionp 'ffipf-backend-search)))

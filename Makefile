@@ -27,3 +27,8 @@ test: ffipf_backend.so elisp/ffipf.el
 
 clean:
 	rm -rfv nimcache ffip*.so ffip ffipf
+
+dist: test
+	mkdir -p dist
+	cp ./ffipf_backend.so ./dist
+	cp ./elisp/ffipf.el ./dist

@@ -1,8 +1,8 @@
-## ffipf - Fuzzy Find in Project Fast (provisional)
+## FFIPF - Fuzzy Find in Project Fast (provisional)
 
 **WARNING**: This is an alpha (at best) release and so it's very rough around
-the edges. The name will also most likely change. There are hardcoded values
-specific to my setup all over the place. Currently only working on Linux.
+the edges. The name will also most likely change. Currently only working on
+Linux.
 
 ### What is it?
 
@@ -14,11 +14,27 @@ performance and written in Nim.
 Checkout the repository. Make sure you have [Nim](https://nim-lang.org/)
 installed, then do:
 
-    make ffip.so
+    make dist
 
-in the shell. Once built, add this directory and `elisp` subdirectory to your
-`load-path`. Then evaluate:
+in the shell. This will compile the module, run the (very basic right now) test,
+and copy module to `./dist/`.
 
-    (load "ffip.so")
-    (load "ffip.el")
-    (ffip)
+Once built, add the `./dist/` folder to your `load-path`, then evaluate
+something like this:
+
+```elisp
+    (add-to-list 'load-path ".../ffipf/dist/")
+    (defvar my-ffipf-loaded nil)
+    (defun my-jump-file ()
+      (interactive)
+      (when (not my-ffipf-loaded)
+        (load "ffipf_backend.so")
+        (load "ffipf.el")
+        (setq my-ffipf-loaded t))
+      (ffipf))
+```
+
+then `M-x ffipf` when visiting a buffer placed in a project (basically, anywhere
+the `project.el` can find out the root of). You should get something like this:
+
+![screenshot](https://raw.githubusercontent.com/piotrklibert/ffipf/master/img/screenshot.png)
