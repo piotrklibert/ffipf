@@ -2,7 +2,6 @@
 ffipf_backend.so: src/ffipf_backend.nim src/fuzzy_file_finder.nim src/emacs_module.nim src/emacs_helpers.nim Makefile
 	nim c \
 	  -d:nimMaxHeap=40 \
-	  -d:release \
 	  --nimcache:nimcache \
 	  --app:lib \
 	  --out:ffipf_backend.so \
@@ -10,6 +9,7 @@ ffipf_backend.so: src/ffipf_backend.nim src/fuzzy_file_finder.nim src/emacs_modu
 	  --gc:arc \
 	  src/ffipf_backend.nim
 
+#	  -d:release \
 #	  -d:debugLogging \
 #	  --debugInfo:on \
 #	  --lineTrace:on \
