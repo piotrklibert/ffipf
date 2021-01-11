@@ -52,10 +52,11 @@ proc reset_paths*() =
 
 
 type
-  MatchResult* = object of RootObj
+  MatchResultObj* = object of RootObj
     score*: float
     res*: string
     missed: bool
+  MatchResult* = ref MatchResultObj
   MatchCache = Table[string, MatchResult]
   Matcher = object of RootObj
     re: Regex
@@ -63,6 +64,10 @@ type
     parts: seq[string]
     ngroups: int
     empty: bool
+
+
+proc `$`*(m: MatchResult): string =
+  "MatchResult(score: $1, res: $2)".format(m.score, m.res)
 
 
 proc make_absolute(res: MatchResult): MatchResult =
@@ -194,8 +199,8 @@ proc search_paths(pattern: string): seq[MatchResult] =
 
 
 proc search*(pattern: string, count: int = MAX_RESULTS): seq[MatchResult] =
-  ## Perform a search for files matching `pattern`. Returns at most
-  ## `MAX_RESULTS - 1` results, but can return less results or none at all.
+  ## Perform a search for files matching `pattern`. Returns at most `count`
+  ## results, but can return less results or even none at all.
   result = @[]
   let matches = search_paths(pattern).sortedByIt(-it.score)
   if len(matches) > 0:
