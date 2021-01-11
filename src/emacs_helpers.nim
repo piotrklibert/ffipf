@@ -5,6 +5,8 @@ proc get_string*(env: ptr emacs_env, val: var emacs_value): string {. inline .} 
   result = ""
   var str_length = 0
   if env.copy_string_contents(env, val, nil, addr str_length):
+    if str_length == 0:
+      return result
     var cstr = cast[cstring](alloc0(str_length))
     defer:
       dealloc(cstr)
