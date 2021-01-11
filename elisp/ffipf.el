@@ -34,7 +34,7 @@
   (interactive)
   (require 'ivy)
   (require 'project)
-  (let ((pr (project-root (project-current t))))
+  (let ((pr (f-expand (project-root (project-current t)))))
     (when (or (not ffipf-initialized)
               (not (string= pr ffipf-initialized)))
       (ffipf-init pr)))

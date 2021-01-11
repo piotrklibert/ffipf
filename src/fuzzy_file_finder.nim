@@ -15,6 +15,7 @@ template debugEcho(args: varargs[string, `$`]) =
 
 const MAX_RESULTS = 20
 
+
 let dirsBlacklist = [
   "backups", "build", ".git", ".github", ".bzr", ".mypy_cache", ".venv", "elpy",
   "eln-cache", "auto-saves", "auto-save-list", "node_modules", "undo-history",
@@ -28,11 +29,11 @@ var search_root*: string
 var paths: seq[string] = newSeqOfCap[string](20200)
 
 
-# Traverses the `dir` directory recursively and stores all found files in a
-# global variable `paths`. Doesn't go into `dirsBlacklist` directories. Ignores
-# files with `extBlacklist` extensions.
-# TODO: make blacklists configurable when called.
 proc init_paths*(ignored_part, dir: string): int =
+  ## Traverses the `dir` directory recursively and stores all found files in a
+  ## global variable `paths`. Doesn't go into `dirsBlacklist` directories.
+  ## Ignores files with `extBlacklist` extensions.
+  # TODO: make blacklists configurable when called.
   search_root = ignored_part
   for (kind, path) in walkDir(dir):
     if kind == pcFile:
@@ -40,11 +41,10 @@ proc init_paths*(ignored_part, dir: string): int =
       if not extBlacklist.contains(ext):
         paths.add(path.replace(ignored_part, ""))
     elif kind == pcDir:
-      # echo lastPathPart(path)
-      # echo lastPathPart(path) in dirsBlacklist
       if not dirsBlacklist.contains(lastPathPart(path).replace("/","")):
         discard init_paths(ignored_part, path)
   return len(paths)
+
 
 proc reset_paths*() =
   if len(paths) > 0:
@@ -64,6 +64,10 @@ type
     ngroups: int
     empty: bool
 
+
+proc make_absolute(res: MatchResult): MatchResult =
+  result = res
+  result.res = search_root & res.res
 
 
 # Takes the given pattern string "foo" and converts it to a new
@@ -109,12 +113,12 @@ type
     inside: bool
 
 
-# Computes match score for a given sequence of regex captures. Takes a number of
-# path parts in the original patterns as the second argument. The score is
-# computed based on the ratio of characters captured as part of the original
-# pattern to characters outside of such captures, and a ratio of continuous
-# captured character groups to the number of path parts in the filename.
 proc build_match_result(captures: seq[string], parts: int): MatchResult =
+  ## Computes match score for a given sequence of regex captures. Takes a number
+  ## of path parts in the original patterns as the second argument. The score is
+  ## computed based on the ratio of characters captured as part of the original
+  ## pattern to characters outside of such captures, and a ratio of continuous
+  ## captured character groups to the number of path parts in the filename.
   var
     total_chars, inside_chars: int
     runs = newSeq[CharGroup]()
@@ -138,10 +142,10 @@ proc build_match_result(captures: seq[string], parts: int): MatchResult =
   MatchResult(score: full_score, res: captures.join(""), missed: false)
 
 
-# Matches path portion of the filename, uses `path_matches` as a cache to store
-# match results of paths already seen.
 proc match_path(path: string, path_matches: var MatchCache,
                 matcher: Matcher): MatchResult =
+  ## Matches path portion of the filename, uses `path_matches` as a cache to
+  ## store match results of paths already seen.
   if matcher.empty:
     return MatchResult(score: 1 / len(path), res: path, missed: false)
   if path in path_matches:
@@ -154,10 +158,10 @@ proc match_path(path: string, path_matches: var MatchCache,
     result = MatchResult(score: 0, res: "", missed: true)
 
 
-# Matches file name portion of the path. Uses match result from `match_path` to
-# compute the final result and score.
 proc match_file(file: string, matcher: Matcher,
                 path_res: MatchResult): MatchResult =
+  ## Matches file name portion of the path. Uses match result from `match_path`
+  ## to compute the final result and score.
   var groups = newSeq[string](matcher.ngroups)
   if file.match(matcher.re, groups):
     var res = build_match_result(groups, 1)
@@ -181,28 +185,32 @@ proc search_paths(pattern: string): seq[MatchResult] =
     for path in paths:
       let (dir, file, ext) = splitFile(path)
       let path_match = match_path(dir, path_matches, path_matcher)
-      if path_match.missed:
-        continue
-      let match = match_file(file & ext, file_matcher, path_match)
-      if not match.missed:
-        match
+      if path_match.missed: continue
+
+      let full_match = match_file(file & ext, file_matcher, path_match)
+      if full_match.missed: continue
+
+      full_match
 
 
-# Perform a search for files matching `pattern`. Returns at most
-# `MAX_RESULTS - 1` results, but can return less results or none at all.
-proc search*(pattern: string): seq[MatchResult] =
+proc search*(pattern: string, count: int = MAX_RESULTS): seq[MatchResult] =
+  ## Perform a search for files matching `pattern`. Returns at most
+  ## `MAX_RESULTS - 1` results, but can return less results or none at all.
   result = @[]
   let matches = search_paths(pattern).sortedByIt(-it.score)
   if len(matches) > 0:
-    let hi = if high(matches) > MAX_RESULTS: MAX_RESULTS else: high(matches)
+    let count = if high(matches) > count: count - 1 else: high(matches)
     debugEcho matches
-    result = matches[0..hi]
+    result = matches[0..count].map(make_absolute)
 
 
 # Simple REPL for testing.
 when isMainModule:
-  # TODO: take these from the command line
-  discard init_paths("/home/cji/projects/", "/home/cji/projects/url-shortener-service/")
+  let
+    args = commandLineParams()
+    path = if len(args) > 0: args[0] else: "."
+    abs_path = path.expandTilde().expandFilename()
+  discard init_paths(abs_path.parentDir, abs_path)
   var line = ""
   while true:
     stdout.write("> ")
