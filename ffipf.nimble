@@ -5,8 +5,7 @@ author        = "Piotr Klibert"
 description   = "A new awesome nimble package"
 license       = "MIT"
 srcDir        = "src"
-installExt    = @["nim"]
-bin           = @["ffip"]
+bin           = @["fuzzy_file_finder"]
 
 
 # Dependencies

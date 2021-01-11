@@ -13,7 +13,7 @@ template debugEcho(args: varargs[string, `$`]) =
     echo args.join(" ")
 
 
-const MAX_RESULTS = 20
+const MAX_RESULTS* = 20
 
 
 let dirsBlacklist = [
