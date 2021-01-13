@@ -6,8 +6,11 @@ Linux.
 
 ### What is it?
 
-A dynamic Emacs module for finding files in directory hierarchies. Compiled for
-performance and written in Nim.
+A dynamic Emacs module for finding files in directory hierarchies. Compiled to
+native and written in Nim.
+
+The fuzzy matching and sorting algorithm is very well suited for navigation in
+deeply nested hierachies of directories.
 
 ### How to use
 
@@ -16,26 +19,23 @@ installed, then do:
 
     make dist
 
-in the shell. This will compile the module, run the (very basic right now) test,
-and copy module to `./dist/`.
+in the shell. This will compile the module, run the (very basic right now)
+tests, and copy compiled module along with Elisp library to `./dist/`.
+
+**WARNING**: do not recompile the module while Emacs (more precisely: any Emacs
+with ffipf loaded) is running. It may cause a segfault.
 
 Once built, add the `./dist/` folder to your `load-path`, then evaluate
 something like this:
 
 ```elisp
     (add-to-list 'load-path ".../ffipf/dist/")
-    (defvar my-ffipf-loaded nil)
-    (defun my-jump-file ()
-      (interactive)
-      (when (not my-ffipf-loaded)
-        (load "ffipf_backend.so")
-        (load "ffipf.el")
-        (setq my-ffipf-loaded t))
-      (ffipf))
+    (require 'ffipf)
+    (global-set-key (kbd "...") 'ffipf-jump-file)
 ```
 
-then `M-x my-jump-file` when visiting a buffer placed in a project (basically,
-anywhere the `project.el` can find out the root of).
+then use `ffipf-jump-file` when visiting a buffer whose file lives inside a
+project (basically, anywhere the `project.el` can find the root of).
 
 You should get something like this:
 

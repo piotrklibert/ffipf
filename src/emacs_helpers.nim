@@ -8,8 +8,7 @@ proc get_string*(env: ptr emacs_env, val: var emacs_value): string {. inline .} 
     if str_length == 0:
       return result
     var cstr = cast[cstring](alloc0(str_length))
-    defer:
-      dealloc(cstr)
+    defer: dealloc(cstr)
     if env.copy_string_contents(env, val, cstr, addr str_length):
       result = $cstr
 
