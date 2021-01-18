@@ -9,6 +9,7 @@ type
   intmax_t* {.importc: "intmax_t", header: "<inttypes.h>".} = clonglong
   ptrdiff_t* {.importc: "ptrdiff_t", header: "<stddef.h>".} = int
 
+
 type
   emacs_runtime_private {.importc: "struct emacs_runtime_private",
                           header: "<emacs-module.h>".} = object
@@ -99,6 +100,7 @@ type
     make_float*:
       proc (env: ptr emacs_env; value: cdouble): emacs_value {.cdecl.}
 
+
     # String manipulation
     copy_string_contents*:
       proc (env: ptr emacs_env; value: emacs_value; buffer: cstring;
@@ -107,6 +109,7 @@ type
     make_string*:
       proc (env: ptr emacs_env; contents: cstring;
             length: ptrdiff_t): emacs_value {.cdecl.}
+
 
     # Embedded pointer type.
     make_user_ptr*:
@@ -117,6 +120,7 @@ type
       proc (env: ptr emacs_env; uptr: emacs_value; data: pointer) {.cdecl.}
     set_user_finalizer*:
       proc (env: ptr emacs_env; uptr: emacs_value; fin: finalizer_proc) {.cdecl.}
+
 
     # Vectors
     vec_get*:

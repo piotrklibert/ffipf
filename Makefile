@@ -1,5 +1,5 @@
 
-ffipf_backend.so: src/ffipf_backend.nim src/fuzzy_file_finder.nim src/emacs_module.nim src/emacs_helpers.nim Makefile
+ffipf_backend.so: src/ffipf_backend.nim src/fuzzy_file_finder.nim src/emacs_module.nim src/emacs_helpers.nim src/emacs_consts.nim Makefile
 	nim c \
 	  -d:nimMaxHeap=120 \
 	  --nimcache:nimcache \
