@@ -1,6 +1,27 @@
-import sugar
+import sequtils
 import emacs_types
 import emacs_module             # for `environ`, which is `ptr emacs_env`
+
+
+template intern*(s: string): emacs_value =
+  environ.intern(environ, s)
+
+
+proc apply*(fun: string, args: openArray[emacs_value]): emacs_value  =
+  let Qfn = intern(fun)
+  let nargs = len(args)
+  if nargs == 0:
+    environ.funcall(environ, Qfn, nargs, nil)
+  else:
+    var args_copy = @args
+    environ.funcall(environ, Qfn, nargs, addr args_copy[0])
+
+
+proc funcall*(fun: string, args: varargs[emacs_value]): emacs_value  =
+  apply(fun, args)
+
+proc funcall*(fun: string): emacs_value =
+  funcall(fun, @[])
 
 
 
@@ -16,44 +37,33 @@ proc get_string*(val: emacs_value): string {. inline .} =
       result = $cstr
 
 
-proc mk_string*(str: string): emacs_value =
-  var cstr: cstring = str
-  environ.make_string(environ, cstr, len(str))
-
-
-proc mk_sym*(sym: string): emacs_value {. inline .} =
-  environ.intern(environ, sym)
-
-
-proc funcall*(fun: string,
-              args: openArray[emacs_value]): emacs_value {. inline .} =
-  let env = environ
-  let Qfn = mk_sym(fun)
-  let nargs = len(args)
-  if nargs == 0:
-    env.funcall(env, Qfn, nargs, nil)
-  else:
-    var args_copy = @args
-    env.funcall(env, Qfn, nargs, addr args_copy[0])
-
-proc funcall*(fun: string): emacs_value =
-  funcall(fun, @[])
-
-
-proc mk_num*(num: int): emacs_value =
-  environ.make_integer(environ, num)
-
-proc mk_num*(num: float): emacs_value =
-  environ.make_float(environ, num)
+proc get_variable*(name: string): emacs_value =
+  funcall("symbol-value", environ.intern(environ, name))
 
 
 proc get_type*(val: var emacs_value): string {. inline .} =
   var Qtype = environ.type_of(environ, val)
-  get_string(funcall("symbol-name", [Qtype]))
+  funcall("symbol-name", Qtype).get_string()
 
 
-proc format*(fmt: string, args: varargs[emacs_value]): string =
-  get_string(funcall("format", @[mk_string(fmt)] & @args))
 
-proc `$`*(val: emacs_value): string =
+proc toEmacs*(str: string): emacs_value =
+  var cstr: cstring = str
+  environ.make_string(environ, cstr, len(str))
+
+proc toEmacs*(num: int): emacs_value {. inline .} =
+  environ.make_integer(environ, num)
+
+proc toEmacs*(num: float): emacs_value {. inline .} =
+  environ.make_float(environ, num)
+
+proc toEmacs*[T](args: openArray[T]): seq[emacs_value] =
+  args.map(toEmacs)
+
+
+
+proc format*(fmt: string, args: varargs[emacs_value]): string {. inline .} =
+  get_string(funcall("format", @[fmt.toEmacs()] & @args))
+
+proc `$`*(val: emacs_value): string {. inline .} =
   format("%s", @[val])
