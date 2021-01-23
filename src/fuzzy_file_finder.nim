@@ -1,4 +1,5 @@
 import os
+import tables
 import sequtils
 import strutils
 import critbits
@@ -24,6 +25,9 @@ let dirsBlacklist = [
 ].toCritBitTree
 
 let extBlacklist = [".elc", ".texi", ".pyc"].toCritBitTree
+let extWeights = {
+  ".so": 0.25,
+}.toTable
 
 var search_root*: string
 var paths: seq[string] = newSeqOfCap[string](20200)
@@ -170,8 +174,13 @@ proc match_file(file: string, matcher: Matcher,
   var groups = newSeq[string](matcher.ngroups)
   if file.match(matcher.re, groups):
     var res = build_match_result(groups, 1)
+    var score = res.score * path_res.score
+    let ext = splitFile(file).ext
+    if ext in extWeights:
+      score *= extWeights[ext]
+
     MatchResult(
-      score: res.score * path_res.score,
+      score: score,
       res: path_res.res.joinPath(file),
       missed: false
     )
