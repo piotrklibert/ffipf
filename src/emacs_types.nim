@@ -34,8 +34,10 @@ type
 
   emacs_value* {.importc: "emacs_value", header: "<emacs-module.h>".} = pointer
 
+  # TODO: leave only one of those, as they're identical
   emacs_subr* = proc (env: ptr emacs_env, nargs: ptrdiff_t, args: ptr emacs_value, data: pointer): emacs_value {.cdecl.}
   defun_proc* = proc (env: ptr emacs_env; nargs: ptrdiff_t; args: ptr emacs_value; data: pointer): emacs_value {.cdecl.}
+
   finalizer_proc* = proc (data: pointer) {.cdecl.}
 
   emacs_funcall_exit* = enum
@@ -129,3 +131,10 @@ type
       proc (env: ptr emacs_env; vec: emacs_value; i: ptrdiff_t; val: emacs_value) {.cdecl.}
     vec_size*:
       proc (env: ptr emacs_env; vec: emacs_value): ptrdiff_t {.cdecl.}
+
+
+type EmacsModuleData* = object
+  defuns*: string
+  name*: string
+
+type NonLocalExitException* = object of Exception

@@ -5,10 +5,6 @@ import emacs_types
 import emacs_consts
 
 
-type EmacsModuleData* = object
-  defuns*: string
-  name*: string
-
 
 var module_data* {. compileTime .} = EmacsModuleData()
 
@@ -24,6 +20,7 @@ macro module_init*(mod_name: static[string]) =
 
 macro defun*(fsym: untyped, max_args: untyped, body: untyped) =
   let
+    NonLocalExitException = newIdentNode("NonLocalExitException")
     env = newIdentNode("env")
     nargs = newIdentNode("nargs")
     args = newIdentNode("args")
@@ -46,8 +43,10 @@ macro defun*(fsym: untyped, max_args: untyped, body: untyped) =
           `env_global` = `env`
           defer:
             `env_global` = nil
-          `body`
-
+          try:
+            `body`
+          except `NonLocalExitException`:
+            return nil
   proc_def
 
 
