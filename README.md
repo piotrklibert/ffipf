@@ -15,7 +15,8 @@ deeply nested hierachies of directories.
 ### How to use
 
 Checkout the repository. Make sure you have [Nim](https://nim-lang.org/)
-installed, then do:
+installed (warning: needs version 1.4+, probably too recent to be in your distro
+package repository at the time of writing - Jan 2021), then do:
 
     make dist
 

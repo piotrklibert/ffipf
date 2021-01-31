@@ -16,38 +16,41 @@ template debugEcho(args: varargs[string, `$`]) =
 
 const MAX_RESULTS* = 20
 
+type
+  FFConfig* = object
+    dirsBlacklist*: CritBitTree[void]
+    extBlacklist*: CritBitTree[void]
+    extWeights*: Table[string, float]
+    searchRoot*: string
 
-let dirsBlacklist = [
-  "backups", "build", ".git", ".github", ".bzr", ".mypy_cache", ".venv", "elpy",
-  "eln-cache", "auto-saves", "auto-save-list", "node_modules", "undo-history",
-  "var", "url", "flycheck-pycheckers", "semanticdb", ".python-environments",
-  ".cache", ".cask", "test", "terraform-mode", "nimcache"
-].toCritBitTree
 
-let extBlacklist = [".elc", ".texi", ".pyc"].toCritBitTree
-let extWeights = {
-  ".so": 0.25,
-}.toTable
-
-var search_root*: string
+var config: FFConfig
 var paths: seq[string] = newSeqOfCap[string](20200)
 
 
-proc init_paths*(ignored_part, dir: string): int =
+proc initPaths2*(c: FFConfig, dir: string): var seq[string] =
   ## Traverses the `dir` directory recursively and stores all found files in a
-  ## global variable `paths`. Doesn't go into `dirsBlacklist` directories.
+  ## module variable `paths`. Doesn't go into `dirsBlacklist` directories.
   ## Ignores files with `extBlacklist` extensions.
-  # TODO: make blacklists configurable when called.
-  search_root = ignored_part
   for (kind, path) in walkDir(dir):
-    if kind == pcFile:
-      let (_, _, ext) = splitFile(path)
-      if not extBlacklist.contains(ext):
-        paths.add(path.replace(ignored_part, ""))
-    elif kind == pcDir:
-      if not dirsBlacklist.contains(lastPathPart(path).replace("/","")):
-        discard init_paths(ignored_part, path)
+    case kind:
+      of pcFile, pcLinkToFile:
+        let ext = splitFile(path).ext
+        if not c.extBlacklist.contains(ext):
+          paths.add(path.replace(c.searchRoot.parentDir, ""))
+      of pcDir, pcLinkToDir:
+        let name = lastPathPart(path).replace("/","")
+        if not c.dirsBlacklist.contains(name):
+          discard initPaths2(c, path)
+  return paths
+
+
+proc initFFinder*(c: FFConfig): int =
+  paths = @[]
+  config = c
+  discard initPaths2(c, c.searchRoot)
   return len(paths)
+
 
 
 proc reset_paths*() =
@@ -76,7 +79,7 @@ proc `$`*(m: MatchResult): string =
 
 proc make_absolute(res: MatchResult): MatchResult =
   result = res
-  result.res = search_root & res.res
+  result.res = config.searchRoot & res.res
 
 
 # Takes the given pattern string "foo" and converts it to a new
@@ -176,8 +179,8 @@ proc match_file(file: string, matcher: Matcher,
     var res = build_match_result(groups, 1)
     var score = res.score * path_res.score
     let ext = splitFile(file).ext
-    if ext in extWeights:
-      score *= extWeights[ext]
+    if ext in config.extWeights:
+      score *= config.extWeights[ext]
 
     MatchResult(
       score: score,
@@ -220,11 +223,18 @@ proc search*(pattern: string, count: int = MAX_RESULTS): seq[MatchResult] =
 
 # Simple REPL for testing.
 when isMainModule:
+  let dirsBlacklist = ["backups", ".git", ".github", ".bzr", ".mypy_cache", ".venv", "elpy", "eln-cache", "auto-saves", "auto-save-list", "node_modules", "undo-history", "var", "url", "flycheck-pycheckers", "semanticdb", ".python-environments", ".cache", ".cask", "test", "terraform-mode", "nimcache"].toCritBitTree
+  let extBlacklist = [".elc", ".texi", ".pyc"].toCritBitTree
+  let extWeights = {".so": 0.25}.toTable
   let
     args = commandLineParams()
     path = if len(args) > 0: args[0] else: "."
     abs_path = path.expandTilde().expandFilename()
-  discard init_paths(abs_path.parentDir, abs_path)
+
+  discard initFFinder(FFConfig(searchRoot: abs_path,
+                               dirsBlacklist: dirsBlacklist,
+                               extBlacklist: extBlacklist,
+                               extWeights: extWeights))
   var line = ""
   while true:
     stdout.write("> ")

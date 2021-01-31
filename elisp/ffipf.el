@@ -1,11 +1,48 @@
 ;; -*- mode: emacs-lisp; lexical-binding: t -*-
 (require 'cl-lib)
 (require 'project)
-
 ;; NOTE: also depends on Ivy for `ffipf-jump-file'
 
 
 (defvar ffipf-backend-loaded nil)
+
+(defvar ffipf-dirs-blacklist
+  (list "backups"
+        ".git"
+        ".github"
+        ".bzr"
+        ".mypy_cache"
+        ".venv"
+        "elpy"
+        "eln-cache"
+        "auto-saves"
+        "auto-save-list"
+        "node_modules"
+        "undo-history"
+        "var"
+        "url"
+        "flycheck-pycheckers"
+        "semanticdb"
+        ".python-environments"
+        ".cache"
+        ".cask"
+        "test"
+        "terraform-mode"
+        "nimcache"))
+
+(defvar ffipf-ext-weights
+  '((".so" . 0.25)))
+
+(defvar ffipf-ext-blacklist
+  (list ".elc"
+        ".eln"
+        ".texi"
+        ".pyc"
+        "#"))
+
+(defvar ffipf-initialized nil
+  "Path to current project root or nil")
+
 
 (defun ffipf-load-backend ()
   (when (not ffipf-backend-loaded)
@@ -13,14 +50,15 @@
     (setq ffipf-backend-loaded t)))
 
 
-(defvar ffipf-initialized nil
-  "Path to current project root or nil")
-
 (defun ffipf-init (root)
   (ffipf-load-backend)
   (let ((expanded (expand-file-name root)))
     (setq ffipf-initialized expanded)
-    (ffipf-backend-init expanded)))
+    ;; (ffipf-backend-init expanded)
+    (ffipf-backend-init ffipf-dirs-blacklist
+                        ffipf-ext-blacklist
+                        ffipf-ext-weights
+                        expanded)))
 
 
 (defun ffipf-search (pat &rest _args)
@@ -50,14 +88,20 @@
 
 
 (defun ffipf-test (&optional dir pat)
-  (setq dir (or dir (expand-file-name user-emacs-directory)))
-  (setq pat (or pat ".el"))
+  ;; (setq dir (or dir (expand-file-name user-emacs-directory)))
+  (setq dir (or dir "/home/cji/priv/ffipf/"))
+  (setq pat (or pat "ba"))
+  ;; (setq pat (or pat ".el"))
   (ffipf-load-backend)
   (cl-assert (and (functionp 'ffipf-backend-init)
                   (functionp 'ffipf-backend-search)))
-  (message "Loaded paths: %s" (ffipf-backend-init dir))
-  (let
-      ((res (ffipf-backend-search pat)))
+
+  (message "Loaded paths: %s"
+           (ffipf-backend-init ffipf-dirs-blacklist
+                                    ffipf-ext-blacklist
+                                    ffipf-ext-weights
+                                    dir))
+  (let ((res (ffipf-backend-search pat)))
     (cl-loop for path in res
              do (princ (concat path "\n")))
     (message "Results: %d" (length res))))

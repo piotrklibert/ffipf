@@ -137,4 +137,4 @@ type EmacsModuleData* = object
   defuns*: string
   name*: string
 
-type NonLocalExitException* = object of Exception
+type NonLocalExitException* = object of CatchableError
