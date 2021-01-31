@@ -14,7 +14,7 @@ template debugEcho(args: varargs[string, `$`]) =
     echo args.join(" ")
 
 
-const MAX_RESULTS* = 20
+const MAX_RESULTS* = 100
 
 type
   FFConfig* = object
@@ -79,7 +79,7 @@ proc `$`*(m: MatchResult): string =
 
 proc make_absolute(res: MatchResult): MatchResult =
   result = res
-  result.res = config.searchRoot & res.res
+  result.res = config.searchRoot.parentDir & res.res
 
 
 # Takes the given pattern string "foo" and converts it to a new
