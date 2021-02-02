@@ -7,9 +7,14 @@ ffipf_backend.so: src/ffipf_backend.nim src/fuzzy_file_finder.nim src/emacs_modu
 	  --out:ffipf_backend.so \
 	  --opt:speed \
 	  --gc:arc \
+	  -d:release \
+	  --opt:speed \
 	  src/ffipf_backend.nim
 
-#	  -d:release \
+#	  --passC:-fPIC \
+#	  --dynlibOverride:c \
+#	  --passL:/usr/lib64/libc_nonshared.a \
+
 #	  -d:debugLogging \
 #	  --debugInfo:on \
 #	  --lineTrace:on \
@@ -19,8 +24,9 @@ ffipf_backend.so: src/ffipf_backend.nim src/fuzzy_file_finder.nim src/emacs_modu
 #	  --assertions:on \
 #	  --embedsrc:on \
 
+
 ffipf: src/fuzzy_file_finder.nim
-	nimble c -d:release --opt:speed --out:ffipf src/fuzzy_file_finder.nim
+	nimble c --gc:arc -d:release --opt:speed --out:ffipf --passL:-static src/fuzzy_file_finder.nim
 
 unittest:
 #	nim c -o:test1 -r tests/test1.nim
@@ -34,9 +40,10 @@ clean:
 	rm -rfv nimcache ffip*.so ffip ffipf tests/test1 test1
 
 
-dist: ffipf_backend.so elisp/ffipf.el
+dist: ffipf_backend.so ffipf elisp/ffipf.el
 	mkdir -p dist
 	cp ./ffipf_backend.so ./dist
+	cp ./ffipf ./dist
 	cp ./elisp/ffipf.el ./dist
 
 testdist: dist

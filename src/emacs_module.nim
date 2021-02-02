@@ -8,6 +8,7 @@ import emacs_consts
 
 var module_data* {. compileTime .} = EmacsModuleData()
 
+var envlvl* = 0
 var environ*: ptr emacs_env
 
 
@@ -25,6 +26,7 @@ macro defun*(fsym: untyped, max_args: untyped, body: untyped) =
     nargs = newIdentNode("nargs")
     args = newIdentNode("args")
     data = newIdentNode("data")
+    envlvl = newIdentNode("envlvl")
     fn_name = fsym.strVal
     emacs_func = (module_data.name & "-" & fn_name).replace("_", "-")
     extern_func = "nimEmacs_" & module_data.name.replace("-", "_") & "_" & fn_name
@@ -40,12 +42,19 @@ macro defun*(fsym: untyped, max_args: untyped, body: untyped) =
                    `args`: ptr array[0..`max_args`, emacs_value],
                    `data`: pointer): emacs_value
                     {. exportc, extern: `extern_func` .} =
-          `env_global` = `env`
+          block:
+            `env_global` = `env`
+            `envlvl` += 1
           defer:
-            `env_global` = nil
+            `envlvl` -= 1
+            if `envlvl` == 0:
+              `env_global` = nil
           try:
             `body`
           except `NonLocalExitException`:
+            return nil
+          except CatchableError:
+            # TODO: convert to Elisp signal
             return nil
   proc_def
 
