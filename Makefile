@@ -26,7 +26,7 @@ ffipf_backend.so: src/ffipf_backend.nim src/fuzzy_file_finder.nim src/emacs_modu
 
 
 ffipf: src/fuzzy_file_finder.nim
-	nimble c --gc:arc -d:release --opt:speed --out:ffipf --passL:-static src/fuzzy_file_finder.nim
+	nimble c --gc:arc -d:release --opt:speed --out:ffipf src/fuzzy_file_finder.nim
 
 unittest:
 #	nim c -o:test1 -r tests/test1.nim

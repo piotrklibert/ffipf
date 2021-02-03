@@ -236,7 +236,10 @@ when isMainModule:
                                extBlacklist: extBlacklist,
                                extWeights: extWeights))
   var line = ""
-  while true:
-    stdout.write("> ")
-    for res in stdin.readLine().search():
-      echo res.res
+  try:
+    while true:
+      stdout.write("> ")
+      for res in stdin.readLine().search():
+        echo res.res
+  except EOFError:
+    echo "bye"
